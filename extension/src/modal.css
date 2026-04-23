@@ -1,0 +1,105 @@
+/* LLReporter modal — shadow-ish isolation via high-specificity class prefix.
+   Inspired by the dashboard's dark / blue-accent theme. */
+
+.llr-backdrop {
+  position: fixed; inset: 0; z-index: 2147483647;
+  background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  color: #f5f7fa;
+  animation: llr-in .18s ease-out;
+}
+@keyframes llr-in { from { opacity: 0 } to { opacity: 1 } }
+
+.llr-card {
+  width: min(560px, 92vw);
+  max-height: 86vh; overflow: hidden;
+  background: #0d1016;
+  border: 1px solid #1a1f2b;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px -20px rgba(47,125,255,.35), 0 0 0 1px rgba(47,125,255,.2);
+  display: flex; flex-direction: column;
+  transform: translateY(6px) scale(.98); opacity: 0;
+  animation: llr-pop .22s cubic-bezier(.2,.9,.3,1.2) forwards;
+}
+.llr-card-lg { width: min(640px, 94vw); }
+@keyframes llr-pop { to { transform: translateY(0) scale(1); opacity: 1 } }
+
+.llr-card.llr-success { box-shadow: 0 0 0 2px #22c55e, 0 0 50px rgba(34,197,94,.4); }
+
+.llr-head {
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid #1a1f2b;
+}
+.llr-kicker {
+  font-size: 10px; letter-spacing: .25em; text-transform: uppercase;
+  color: #2f7dff;
+}
+.llr-title { font-size: 18px; font-weight: 600; margin-top: 4px; }
+.llr-sub { font-size: 12px; color: rgba(255,255,255,.5); margin-top: 4px; }
+
+.llr-body {
+  padding: 16px 20px; overflow: auto;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.llr-label {
+  font-size: 11px; color: rgba(255,255,255,.6);
+  margin-top: 6px;
+}
+.llr-input {
+  width: 100%;
+  background: rgba(13,16,22,.6);
+  border: 1px solid #1a1f2b;
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #f5f7fa; font-size: 13px;
+  outline: none; transition: border-color .15s, box-shadow .15s;
+  font-family: inherit;
+}
+.llr-input:focus {
+  border-color: rgba(47,125,255,.6);
+  box-shadow: 0 0 0 3px rgba(47,125,255,.18);
+}
+.llr-textarea {
+  min-height: 120px; max-height: 260px; resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px;
+}
+select.llr-input { appearance: none; background-image: linear-gradient(45deg, transparent 50%, #4b93ff 50%), linear-gradient(135deg, #4b93ff 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 28px; }
+
+.llr-shot {
+  border: 1px dashed #2a3040; border-radius: 10px;
+  min-height: 110px; display: flex; align-items: center; justify-content: center;
+  background: rgba(47,125,255,.04);
+}
+.llr-shot-hint { color: rgba(255,255,255,.45); font-size: 12px; }
+.llr-shot-img { max-width: 100%; max-height: 260px; border-radius: 8px; }
+
+.llr-row { display: flex; gap: 8px; }
+.llr-spacer { flex: 1 }
+
+.llr-foot {
+  padding: 12px 20px 16px;
+  border-top: 1px solid #1a1f2b;
+  display: flex; gap: 8px; align-items: center;
+}
+
+.llr-btn {
+  border: 1px solid #1a1f2b;
+  background: rgba(255,255,255,.03);
+  color: #f5f7fa;
+  font-size: 13px; font-family: inherit;
+  padding: 7px 12px; border-radius: 8px;
+  cursor: pointer; transition: transform .08s, background .15s, border-color .15s;
+}
+.llr-btn:hover { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.2); }
+.llr-btn:active { transform: translateY(1px); }
+.llr-btn-primary {
+  background: #2f7dff; border-color: rgba(47,125,255,.6); color: white; font-weight: 500;
+}
+.llr-btn-primary:hover { background: #4b93ff; box-shadow: 0 0 0 3px rgba(47,125,255,.18); }
+
+.llr-err {
+  color: #fca5a5; font-size: 12px; min-height: 16px;
+  padding-top: 4px;
+}

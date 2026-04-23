@@ -1,0 +1,21 @@
+{
+  "name": "llreporter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LLReporter — bug capture Chrome extension, web dashboard, and Claude/VS Code connector",
+  "workspaces": [
+    "web",
+    "extension",
+    "connector"
+  ],
+  "scripts": {
+    "dev": "npm --workspace web run dev",
+    "build": "npm --workspace web run build",
+    "start": "npm --workspace web run start",
+    "build:extension": "npm --workspace extension run build",
+    "build:connector": "npm --workspace connector run build"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

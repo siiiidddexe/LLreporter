@@ -1,0 +1,13 @@
+{
+  "name": "@llreporter/connector",
+  "version": "0.1.0",
+  "description": "Drop-in connector so Claude inside VS Code can pull LLReporter bugs, fix them one by one, and post patches/status back.",
+  "bin": {
+    "llreporter": "./bin/llreporter.mjs"
+  },
+  "scripts": {
+    "build": "echo 'No build needed (pure ESM)'"
+  },
+  "type": "module",
+  "engines": { "node": ">=20" }
+}

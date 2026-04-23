@@ -1,0 +1,16 @@
+node_modules
+.next
+dist
+build
+out
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+web/prisma/dev.db
+web/public/uploads/*
+!web/public/uploads/.gitkeep
+extension/dist
+connector/dist
+coverage
