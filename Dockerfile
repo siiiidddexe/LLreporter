@@ -5,7 +5,7 @@
 # ─── build stage ────────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
 WORKDIR /app
-RUN apk add --no-cache libc6-compat openssl python3 make g++
+RUN apk add --no-cache libc6-compat openssl python3 make g++ zip
 
 COPY package.json ./
 COPY web/package.json web/package.json

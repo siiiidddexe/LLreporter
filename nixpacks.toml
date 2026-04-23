@@ -3,7 +3,7 @@
 # Ensures prisma db push + seed run before Next.js starts.
 
 [phases.setup]
-nixPkgs = ["nodejs_20", "openssl", "sqlite"]
+nixPkgs = ["nodejs_20", "openssl", "sqlite", "zip"]
 
 [phases.install]
 cmds = ["npm ci --no-audit --no-fund"]

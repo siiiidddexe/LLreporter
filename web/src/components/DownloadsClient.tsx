@@ -68,30 +68,52 @@ function ExtensionGuide() {
       <H2 Icon={Chrome}>Chrome Extension — How it works</H2>
       <P>The LLReporter extension lets anyone on your team capture a bug in seconds — without leaving the browser.</P>
 
+      {/* Prominent download CTA */}
+      <div className="mt-5 flex flex-col gap-3 rounded-xl border border-accent/30 bg-accent/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="text-sm font-semibold text-white">Download the packaged extension</div>
+          <div className="mt-1 text-xs text-white/60">
+            ZIP contains <code className="text-accent">manifest.json</code>, content + background scripts, icons, and styles.
+            Already pre-configured for <code className="text-accent">webaudit.logiclaunch.in</code>.
+          </div>
+        </div>
+        <a
+          href="/llreporter-extension.zip"
+          download="llreporter-extension.zip"
+          className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-accent/90"
+        >
+          <Download size={16} />
+          <span>Download ZIP</span>
+        </a>
+      </div>
+
       <H3>Installation</H3>
-      <Step n={1}>Open Chrome and go to <strong>chrome://extensions</strong></Step>
-      <Step n={2}>Toggle <strong>Developer mode</strong> on (top-right corner)</Step>
-      <Step n={3}>Click <strong>Load unpacked</strong> and pick the <code className="text-accent">extension/</code> folder from the repo</Step>
-      <Step n={4}>Pin the LLReporter icon to your toolbar</Step>
+      <Step n={1}>Download the ZIP above and <strong>unzip it</strong> anywhere on your machine.</Step>
+      <Step n={2}>Open Chrome and go to <strong>chrome://extensions</strong></Step>
+      <Step n={3}>Toggle <strong>Developer mode</strong> on (top-right corner)</Step>
+      <Step n={4}>Click <strong>Load unpacked</strong> and pick the unzipped <code className="text-accent">llreporter-extension/</code> folder</Step>
+      <Step n={5}>Pin the LLReporter icon to your toolbar</Step>
 
       <H3>First sign-in</H3>
-      <Step n={1}>Click the extension icon → type the dashboard URL (<code className="text-accent">https://webaudit.logiclaunch.in</code>) and your email + password</Step>
-      <Step n={2}>You&apos;re logged in — your session lasts 100 years, so you only do this once</Step>
+      <Step n={1}>Click the extension icon → confirm the dashboard URL is <code className="text-accent">https://webaudit.logiclaunch.in</code> and enter your email + password</Step>
+      <Step n={2}>You&apos;re logged in — your session lasts 100 years, so you only do this once per device</Step>
 
       <H3>Reporting a bug (the easy way)</H3>
-      <Callout>Press <strong>⌘K</strong> (Mac) or <strong>Ctrl+K</strong> (Windows/Linux) on any page to open the bug capture modal.</Callout>
-      <Step n={1}>A modal pops up. The <strong>URL is already filled in</strong> automatically.</Step>
-      <Step n={2}><strong>Paste a screenshot</strong> with ⌘V — it shows a preview instantly.</Step>
-      <Step n={3}>Type a short title and describe what went wrong in plain English — what you expected vs what happened.</Step>
-      <Step n={4}>Hit <strong>Enter</strong> or click Submit. Done! The bug appears on the dashboard.</Step>
+      <Callout>Press <strong>⌘K</strong> (Mac) or <strong>Ctrl+K</strong> (Windows/Linux) on any page to open the bug-capture modal.</Callout>
+      <Step n={1}>A modal pops up. The <strong>URL is filled in</strong> automatically.</Step>
+      <Step n={2}><strong>Pick the project</strong> from the dropdown (super-admins see every project).</Step>
+      <Step n={3}><strong>Paste a screenshot</strong> with ⌘V/Ctrl+V — or click <em>Capture visible tab</em> to grab the page (the modal hides itself during capture so it isn&apos;t in the shot).</Step>
+      <Step n={4}>Type a short description of what went wrong.</Step>
+      <Step n={5}>Hit <strong>⌘↵ / Ctrl+↵</strong> or click Submit. Done — the bug appears on the dashboard instantly.</Step>
 
       <H3>What happens next</H3>
-      <P>Bugs submitted against the same URL are automatically grouped into a <strong>Bug Set</strong>. A developer will pick it up, investigate with Claude, and update the status. You&apos;ll see it move through: <em>Open → In Progress → Needs Testing → Resolved</em>.</P>
+      <P>Bugs submitted against the same URL are automatically grouped into a <strong>Bug Set</strong>. A developer picks it up, investigates with Claude, and updates the status. You&apos;ll see it move through: <em>Open → In Progress → Needs Testing → Resolved</em>.</P>
 
       <H3>Tips</H3>
       <Step n={1}>You don&apos;t need to write code — just describe what you saw in plain English.</Step>
       <Step n={2}>Screenshots are optional but massively helpful.</Step>
       <Step n={3}>If the same bug happens on multiple pages, submit once per page — they&apos;ll group automatically.</Step>
+      <Step n={4}>Press <strong>Esc</strong> to dismiss the modal at any time.</Step>
     </div>
   );
 }

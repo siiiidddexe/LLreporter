@@ -14,3 +14,9 @@ web/public/uploads/*
 extension/dist
 connector/dist
 coverage
+
+# Generated at build time by web/scripts/build-extension-zip.js
+web/public/llreporter-extension.zip
+extension/src/icon16.png
+extension/src/icon48.png
+extension/src/icon128.png

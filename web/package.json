@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
+    "prebuild": "node scripts/build-extension-zip.js",
     "build": "prisma generate && next build",
     "start": "next start -p 3000",
     "seed": "node prisma/seed.js",
+    "build:extension": "node scripts/build-extension-zip.js",
     "postinstall": "prisma generate || true"
   },
   "dependencies": {
