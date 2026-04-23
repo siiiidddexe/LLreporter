@@ -1,0 +1,18 @@
+# nixpacks.toml
+# Configures Nixpacks builds (used by Dokploy "Application" type).
+# Ensures prisma db push + seed run before Next.js starts.
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "openssl", "sqlite"]
+
+[phases.install]
+cmds = ["npm ci --no-audit --no-fund"]
+
+[phases.build]
+cmds = [
+  "cd web && DATABASE_URL='file:/tmp/build.db' npx prisma generate && cd .. && npm run build"
+]
+
+[start]
+# mkdir /data after volume mount, push schema, seed, then start.
+cmd = "mkdir -p /data && chmod 0777 /data && cd web && npx prisma db push --accept-data-loss --skip-generate && node prisma/seed.js && cd .. && npm run start"

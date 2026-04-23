@@ -2,22 +2,32 @@
 name: llreporter
 version: 0.1.0
 description: LLReporter bug platform (single container, embedded SQLite)
-type: compose
-compose: docker-compose.yml
+
+# --- If using Dokploy "Application" type (Nixpacks) ---
+# Point DATABASE_URL to /data/llreporter.db and mount a persistent volume
+# at /data in the Dokploy UI → Storage tab.
+#
+# --- If using Dokploy "Compose" type ---
+# Use docker-compose.yml (volumes + entrypoint handle everything automatically).
+
+type: application
+
 domains:
   - host: webaudit.logiclaunch.in
-    service: app
     port: 3000
     https: true
     certResolver: letsencrypt
+
 env:
   required: []
   optional:
+    - DATABASE_URL        # default: file:/data/llreporter.db
     - NEXTAUTH_SECRET
     - PUBLIC_URL
     - SEED_ADMIN_EMAIL
     - SEED_ADMIN_PASSWORD
     - SEED_ADMIN_NAME
+
 healthcheck:
   path: /api/health
   interval: 30
