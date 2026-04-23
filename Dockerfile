@@ -18,9 +18,11 @@ RUN npx prisma generate && npm run build
 # ---------- runtime ----------
 FROM node:20-alpine AS runner
 WORKDIR /app/web
-RUN apk add --no-cache libc6-compat openssl wget
+RUN apk add --no-cache libc6-compat openssl wget sqlite
+
 ENV NODE_ENV=production
 ENV PORT=3000
+# Absolute SQLite path — the parent dir is a docker volume mount.
 ENV DATABASE_URL="file:/app/web/data/llreporter.db"
 ENV NEXTAUTH_SECRET="llreporter-default-secret-please-override-in-production-aZbYcXdWeVfUgThSiRjQkPlOmN"
 ENV PUBLIC_URL="https://webaudit.logiclaunch.in"
@@ -29,11 +31,13 @@ ENV SEED_ADMIN_PASSWORD="changeme"
 ENV SEED_ADMIN_NAME="Super Admin"
 
 COPY --from=builder /app /app
-RUN mkdir -p /app/web/data /app/web/public/uploads
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
+ && mkdir -p /app/web/data /app/web/public/uploads \
+ && chmod -R 0777 /app/web/data /app/web/public/uploads
 
 EXPOSE 3000
 
-# 1. sync the schema to the sqlite file (creates it on first boot)
-# 2. seed the super-admin (idempotent)
-# 3. start Next.js
-CMD sh -c "npx prisma db push --accept-data-loss --skip-generate && node prisma/seed.js && npm run start"
+# Entrypoint runs AFTER docker mounts the volumes, so it can re-create dirs
+# that named-volume mounts have masked, and runs db push + seed loudly.
+CMD ["/usr/local/bin/docker-entrypoint.sh"]
