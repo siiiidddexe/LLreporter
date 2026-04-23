@@ -21,7 +21,7 @@ All env vars have sane defaults. You *should* override:
 | `SEED_ADMIN_EMAIL` | your email | super-admin bootstrap |
 | `SEED_ADMIN_PASSWORD` | strong password | super-admin bootstrap |
 
-`DATABASE_URL` defaults to `file:/app/web/data/llreporter.db` — leave it.
+`DATABASE_URL` defaults to `file:/data/llreporter.db` — leave it.
 
 ## 3. Domain
 
@@ -55,8 +55,8 @@ Push to `main` → Dokploy auto-rebuilds. SQLite schema is re-pushed on every bo
 ## 7. Backup
 
 ```bash
-docker compose exec app sh -c 'sqlite3 /app/web/data/llreporter.db ".backup /app/web/data/backup.db"'
-docker compose cp app:/app/web/data/backup.db ./backup-$(date +%F).db
+docker compose exec app sh -c 'sqlite3 /data/backup.db ".restore /data/llreporter.db" && sqlite3 /data/backup.db ".backup /data/backup.db"'
+docker compose cp app:/data/backup.db ./backup-$(date +%F).db
 ```
 
 ## 8. Force-signout all users
@@ -64,7 +64,7 @@ docker compose cp app:/app/web/data/backup.db ./backup-$(date +%F).db
 Bump `tokenVersion` on every user (kills all their 100-year tokens):
 
 ```bash
-docker compose exec app sh -c 'sqlite3 /app/web/data/llreporter.db "UPDATE User SET tokenVersion = tokenVersion + 1"'
+docker compose exec app sh -c 'sqlite3 /data/llreporter.db "UPDATE User SET tokenVersion = tokenVersion + 1"'
 ```
 
 Or target one user via the dashboard UI.

@@ -1,27 +1,28 @@
 #!/bin/sh
-# LLReporter container entrypoint.
-# Runs AFTER volume mounts, so it can prep dirs the volume just exposed.
-
+# LLReporter entrypoint — runs AFTER docker volume mounts.
+# SQLite lives at /data/llreporter.db (top-level, outside the app tree).
 set -e
 
-DATA_DIR="/app/web/data"
-UPLOAD_DIR="/app/web/public/uploads"
+echo "[entrypoint] ============================================"
+echo "[entrypoint] DATABASE_URL = $DATABASE_URL"
+echo "[entrypoint] NODE_ENV     = $NODE_ENV"
+echo "[entrypoint] PORT         = ${PORT:-3000}"
+echo "[entrypoint] ============================================"
 
-echo "[entrypoint] preparing data dirs…"
-mkdir -p "$DATA_DIR" "$UPLOAD_DIR"
-chmod -R 0777 "$DATA_DIR" "$UPLOAD_DIR" || true
+# Ensure the data dir exists and is writable regardless of volume ownership.
+mkdir -p /data /app/web/public/uploads
+chmod 0777 /data /app/web/public/uploads
 
-echo "[entrypoint] DATABASE_URL=$DATABASE_URL"
-echo "[entrypoint] data dir contents:"
-ls -la "$DATA_DIR" || true
+echo "[entrypoint] /data contents:"
+ls -la /data || true
 
 cd /app/web
 
-echo "[entrypoint] syncing prisma schema → sqlite…"
+echo "[entrypoint] running: prisma db push …"
 npx prisma db push --accept-data-loss --skip-generate
 
-echo "[entrypoint] seeding super-admin…"
+echo "[entrypoint] running: seed …"
 node prisma/seed.js
 
-echo "[entrypoint] starting Next.js on port ${PORT:-3000}…"
+echo "[entrypoint] starting Next.js …"
 exec npm run start

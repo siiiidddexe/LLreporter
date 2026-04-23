@@ -1,8 +1,8 @@
 version: "3.9"
 
-# Single-container, zero-setup LLReporter.
-# SQLite lives on a named volume so data survives redeploys.
-# All env vars have sensible defaults — override NEXTAUTH_SECRET in production.
+# LLReporter — single container, embedded SQLite, zero setup.
+# SQLite lives at /data inside the container, on a named volume.
+# All env vars have defaults — only NEXTAUTH_SECRET needs overriding in prod.
 
 services:
   app:
@@ -11,24 +11,26 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: "file:/app/web/data/llreporter.db"
+      # /data is a clean top-level mount — avoids app-dir volume conflicts.
+      DATABASE_URL: "file:/data/llreporter.db"
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-llreporter-default-secret-please-override-in-production-aZbYcXdWeVfUgThSiRjQkPlOmN}
       PUBLIC_URL: ${PUBLIC_URL:-https://webaudit.logiclaunch.in}
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@logiclaunch.in}
-      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-changeme}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-!Hesoyam3451}
       SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:-Super Admin}
       NODE_ENV: production
       PORT: "3000"
     ports:
       - "3000:3000"
     volumes:
-      - data:/app/web/data              # SQLite DB file lives here
+      - data:/data                      # SQLite DB file
       - uploads:/app/web/public/uploads # screenshot uploads
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 5
+      start_period: 30s
 
 volumes:
   data:
