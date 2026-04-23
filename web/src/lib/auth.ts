@@ -3,14 +3,14 @@ import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 import { prisma } from "./db";
-import type { Role, User } from "@prisma/client";
+import type { User } from "@prisma/client";
 
 const SECRET = process.env.NEXTAUTH_SECRET || "dev-only-insecure-secret-change-me";
 export const SESSION_COOKIE = "llr_session";
 // 100 years — tokens are only invalidated via tokenVersion bump.
 const HUNDRED_YEARS = 60 * 60 * 24 * 365 * 100;
 
-export type SessionPayload = { uid: string; v: number; role: Role };
+export type SessionPayload = { uid: string; v: number; role: string };
 
 export function signToken(user: Pick<User, "id" | "tokenVersion" | "role">) {
   return jwt.sign({ uid: user.id, v: user.tokenVersion, role: user.role } satisfies SessionPayload, SECRET, {

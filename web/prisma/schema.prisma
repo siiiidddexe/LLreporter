@@ -1,35 +1,25 @@
-// LLReporter schema
-// Postgres via DATABASE_URL
+// LLReporter schema — SQLite (embedded, zero-setup)
+// Single file lives at /app/web/data/llreporter.db inside the container.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  SUPER_ADMIN
-  MEMBER
-}
-
-enum BugStatus {
-  OPEN          // reported, not yet picked up
-  IN_PROGRESS   // a developer (or Claude) is working on it
-  NEEDS_TESTING // dev pushed a fix, waiting for tester
-  RESOLVED      // tester confirmed
-  UNRESOLVED    // tester rejected the fix, back to dev
-  CLOSED        // archived / won't fix
-}
+// SQLite on Prisma has no native enums — roles/statuses are validated at the API layer.
+// Valid role values:   "SUPER_ADMIN" | "MEMBER"
+// Valid status values: "OPEN" | "IN_PROGRESS" | "NEEDS_TESTING" | "RESOLVED" | "UNRESOLVED" | "CLOSED"
 
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
   name          String
   passwordHash  String
-  role          Role      @default(MEMBER)
+  role          String    @default("MEMBER")
   // Bumping this invalidates every outstanding JWT → "force sign out"
   tokenVersion  Int       @default(0)
   createdAt     DateTime  @default(now())
@@ -91,10 +81,10 @@ model Bug {
   assigneeId   String?
   url          String
   title        String
-  description  String    @db.Text
-  screenshot   String?   // path under /uploads (e.g. /uploads/abc.png) or data URL ref
+  description  String
+  screenshot   String?   // path under /uploads (e.g. /uploads/abc.png)
   userAgent    String?
-  status       BugStatus @default(OPEN)
+  status       String    @default("OPEN")
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -114,7 +104,7 @@ model Comment {
   authorId  String
   // "human" or "claude" — lets the UI badge AI patches differently
   kind      String   @default("human")
-  body      String   @db.Text
+  body      String
   createdAt DateTime @default(now())
 
   bug    Bug  @relation(fields: [bugId], references: [id], onDelete: Cascade)

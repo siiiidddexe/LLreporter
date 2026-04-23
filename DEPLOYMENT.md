@@ -1,46 +1,70 @@
 # Deployment — Dokploy v0.26.7
 
-## 1. Push to GitHub
+LLReporter ships as a **single container** with SQLite embedded. No database service, no manual migrations, no required env vars.
+
+## 1. Connect the repo
+
+1. Open Dokploy → **Create Service** → **Compose**.
+2. **Provider**: GitHub.
+3. **Repository**: `siiidddexe/LLreporter`.
+4. **Branch**: `main`.
+5. **Compose file path**: `docker-compose.yml`.
+
+## 2. (Optional) environment
+
+All env vars have sane defaults. You *should* override:
+
+| Var | Recommended | Why |
+| --- | --- | --- |
+| `NEXTAUTH_SECRET` | long random string | JWT signing key |
+| `PUBLIC_URL` | `https://webaudit.logiclaunch.in` | absolute URLs in API responses |
+| `SEED_ADMIN_EMAIL` | your email | super-admin bootstrap |
+| `SEED_ADMIN_PASSWORD` | strong password | super-admin bootstrap |
+
+`DATABASE_URL` defaults to `file:/app/web/data/llreporter.db` — leave it.
+
+## 3. Domain
+
+1. **Domains** tab → add `webaudit.logiclaunch.in`.
+2. **Service**: `app`. **Port**: `3000`.
+3. Enable **HTTPS (Let's Encrypt)**.
+
+## 4. Volumes
+
+`docker-compose.yml` already declares two named volumes:
+
+- `data` → `/app/web/data` (SQLite file)
+- `uploads` → `/app/web/uploads` (screenshots)
+
+Dokploy will provision these automatically. Back them up together if you want to preserve bugs + screenshots.
+
+## 5. Deploy
+
+Hit **Deploy**. On first boot the container:
+
+1. Runs `prisma db push` (auto-creates the schema).
+2. Seeds the super-admin (idempotent).
+3. Starts Next.js on port 3000.
+
+Log in at `https://webaudit.logiclaunch.in` with your seed credentials. **Change the password immediately** from the dashboard.
+
+## 6. Updating
+
+Push to `main` → Dokploy auto-rebuilds. SQLite schema is re-pushed on every boot — additive changes are safe. For destructive migrations, back up `/app/web/data/llreporter.db` first.
+
+## 7. Backup
 
 ```bash
-git init
-git remote add origin https://github.com/siiidddexe/LLreporter.git
-git add .
-git commit -m "feat: initial LLReporter scaffold"
-git branch -M main
-git push -u origin main
+docker compose exec app sh -c 'sqlite3 /app/web/data/llreporter.db ".backup /app/web/data/backup.db"'
+docker compose cp app:/app/web/data/backup.db ./backup-$(date +%F).db
 ```
 
-## 2. Create a Dokploy Compose service
+## 8. Force-signout all users
 
-1. In Dokploy (v0.26.7) → **Projects → New → Compose**.
-2. **Source:** GitHub → `siiidddexe/LLreporter` → branch `main`.
-3. **Compose path:** `docker-compose.yml`.
-4. **Environment variables** (from `.env.example`):
-   - `NEXTAUTH_SECRET` → `openssl rand -base64 32`
-   - `DATABASE_URL` → leave default, or point to managed Postgres
-   - `PUBLIC_URL` → `https://webaudit.logiclaunch.in`
-   - `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, `SEED_ADMIN_NAME` → first-boot admin
-   - `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` → for the bundled Postgres
-5. **Domains:** add `webaudit.logiclaunch.in` → service `web`, port `3000`, HTTPS (Let's Encrypt).
-6. **Deploy.**
-
-On first boot the web container runs `prisma migrate deploy` and seeds the super-admin.
-Subsequent deploys skip seeding (it's idempotent).
-
-## 3. Post-deploy
-
-1. Log in at `https://webaudit.logiclaunch.in` with the seed admin.
-2. Change your password (Profile → Security).
-3. Create a project; copy its API key.
-4. Invite employees (Team → Add member). They will get an email/temp password.
-5. Publish the Chrome extension (see `extension/README.md`) — or sideload it to team members.
-6. Hand `connector/DOCUMENTATION.md` + API key to developers for Claude/VS Code.
-
-## 4. Updating
+Bump `tokenVersion` on every user (kills all their 100-year tokens):
 
 ```bash
-git pull && git push
+docker compose exec app sh -c 'sqlite3 /app/web/data/llreporter.db "UPDATE User SET tokenVersion = tokenVersion + 1"'
 ```
 
-Dokploy auto-redeploys on push (enable the webhook in Dokploy → the service → **Auto Deploy**).
+Or target one user via the dashboard UI.

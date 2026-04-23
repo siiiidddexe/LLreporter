@@ -1,37 +1,18 @@
 version: "3.9"
 
-# Dokploy v0.26.7 compliant compose.
-# - Uses named volumes (Dokploy manages them)
-# - Exposes ports; domain is attached via Dokploy's Traefik layer
-# - Healthchecks so Dokploy's rolling deploy is safe
+# Single-container, zero-setup LLReporter.
+# SQLite lives on a named volume so data survives redeploys.
+# All env vars have sensible defaults — override NEXTAUTH_SECRET in production.
 
 services:
-  db:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-llreporter}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-llreporter}
-      POSTGRES_DB: ${POSTGRES_DB:-llreporter}
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-llreporter}"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
-  web:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql://llreporter:llreporter@db:5432/llreporter}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      DATABASE_URL: "file:/app/web/data/llreporter.db"
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-llreporter-default-secret-please-override-in-production-aZbYcXdWeVfUgThSiRjQkPlOmN}
       PUBLIC_URL: ${PUBLIC_URL:-https://webaudit.logiclaunch.in}
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@logiclaunch.in}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-changeme}
@@ -41,7 +22,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - uploads:/app/web/public/uploads
+      - data:/app/web/data              # SQLite DB file lives here
+      - uploads:/app/web/public/uploads # screenshot uploads
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
       interval: 30s
@@ -49,5 +31,5 @@ services:
       retries: 5
 
 volumes:
-  db_data:
+  data:
   uploads:

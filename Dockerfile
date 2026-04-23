@@ -1,34 +1,39 @@
 # syntax=docker/dockerfile:1.6
-# Multi-stage build for the Next.js web dashboard
-FROM node:20-alpine AS deps
-WORKDIR /app
-RUN apk add --no-cache libc6-compat openssl
-COPY package.json package-lock.json* ./
-COPY web/package.json web/package.json
-RUN npm install --no-audit --no-fund --workspaces --include-workspace-root --workspace=web || npm install --prefix web --no-audit --no-fund
+# LLReporter — single image, embedded SQLite, zero setup.
+# Run:  docker compose up -d    then visit http://localhost:3000
 
 FROM node:20-alpine AS builder
 WORKDIR /app
-RUN apk add --no-cache libc6-compat openssl
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/web/node_modules ./web/node_modules
+RUN apk add --no-cache libc6-compat openssl python3 make g++
+
+COPY package.json ./
+COPY web/package.json web/package.json
+RUN npm install --prefix web --no-audit --no-fund
+
 COPY . .
 WORKDIR /app/web
-RUN npx prisma generate
-RUN npm run build
+ENV DATABASE_URL="file:/tmp/build.db"
+RUN npx prisma generate && npm run build
 
+# ---------- runtime ----------
 FROM node:20-alpine AS runner
-WORKDIR /app
+WORKDIR /app/web
 RUN apk add --no-cache libc6-compat openssl wget
 ENV NODE_ENV=production
 ENV PORT=3000
-# Copy full built web workspace (standalone would be leaner but we keep prisma runtime + seed script easily)
-COPY --from=builder /app/web ./web
-COPY --from=builder /app/node_modules ./node_modules
-COPY package.json ./
-WORKDIR /app/web
+ENV DATABASE_URL="file:/app/web/data/llreporter.db"
+ENV NEXTAUTH_SECRET="llreporter-default-secret-please-override-in-production-aZbYcXdWeVfUgThSiRjQkPlOmN"
+ENV PUBLIC_URL="https://webaudit.logiclaunch.in"
+ENV SEED_ADMIN_EMAIL="admin@logiclaunch.in"
+ENV SEED_ADMIN_PASSWORD="changeme"
+ENV SEED_ADMIN_NAME="Super Admin"
+
+COPY --from=builder /app /app
+RUN mkdir -p /app/web/data /app/web/public/uploads
+
 EXPOSE 3000
-# On first boot there are no migrations yet — `db push` syncs the schema.
-# On subsequent boots `migrate deploy` is a no-op if no migrations are added.
-# Seed is idempotent.
-CMD sh -c "(npx prisma migrate deploy || npx prisma db push --accept-data-loss) && node prisma/seed.js && npm run start"
+
+# 1. sync the schema to the sqlite file (creates it on first boot)
+# 2. seed the super-admin (idempotent)
+# 3. start Next.js
+CMD sh -c "npx prisma db push --accept-data-loss --skip-generate && node prisma/seed.js && npm run start"

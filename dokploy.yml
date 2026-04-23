@@ -1,22 +1,20 @@
 # Dokploy v0.26.7 metadata
-# https://dokploy.com
 name: llreporter
 version: 0.1.0
-description: LLReporter bug platform (web + extension + connector)
+description: LLReporter bug platform (single container, embedded SQLite)
 type: compose
 compose: docker-compose.yml
 domains:
   - host: webaudit.logiclaunch.in
-    service: web
+    service: app
     port: 3000
     https: true
     certResolver: letsencrypt
 env:
-  required:
-    - NEXTAUTH_SECRET
-    - DATABASE_URL
-    - PUBLIC_URL
+  required: []
   optional:
+    - NEXTAUTH_SECRET
+    - PUBLIC_URL
     - SEED_ADMIN_EMAIL
     - SEED_ADMIN_PASSWORD
     - SEED_ADMIN_NAME

@@ -1,76 +1,48 @@
-# Contributing / local dev notes
+# Contributing
 
-## Dev without Docker
+## Local dev
 
 ```bash
-# 1. start a local Postgres any way you like, then:
+# Option A — run in Docker (matches prod exactly)
+docker compose up --build
+
+# Option B — run the web app natively
 cd web
-cp ../.env.example .env
-# edit DATABASE_URL in .env to point to your local Postgres
 npm install
-npx prisma db push      # sync schema
-node prisma/seed.js     # create super admin
+npx prisma generate
+npx prisma db push
+node prisma/seed.js
 npm run dev
 ```
 
-Web app at http://localhost:3000. Default admin: `admin@logiclaunch.in` / `changeme`.
+SQLite file lives at `web/data/llreporter.db` (option B) or inside the `data` volume (option A).
 
-## Load the extension (dev)
+## Extension dev
 
-1. `chrome://extensions` → Developer mode → **Load unpacked**.
-2. Pick `extension/src/`.
-3. Click the icon, set Dashboard URL to `http://localhost:3000`, sign in.
-4. On any tab press **⌘K / Ctrl+K**.
+```bash
+# chrome://extensions → Load unpacked → ./extension
+```
 
-## Connector (dev)
+Edit files, click the reload icon on the extension card. Point it at `http://localhost:3000` by setting the dashboard URL on the extension's popup.
+
+## Connector dev
 
 ```bash
 cd connector
-npm install          # nothing to install really — pure ESM
-LLREPORTER_BASE=http://localhost:3000 \
-LLREPORTER_API_KEY=llr_live_xxx \
-  ./bin/llreporter.mjs next
+npm link       # exposes `llreporter` CLI globally
+llreporter --help
 ```
 
-Create a project in the dashboard to get an API key.
+## Conventions
 
-## Pushing to GitHub (siiidddexe/LLreporter)
+- **TypeScript** for `web/`; plain ESM JS for `connector/` and `extension/`.
+- **Prisma SQLite** — no native enums, no `@db.Text`. Validate roles/statuses with Zod at the API boundary.
+- **Auth**: 100-year JWT, invalidated only by bumping `User.tokenVersion`.
+- **UI**: Tailwind + Framer Motion. Black bg, white text, blue accents (`#3B82F6` / `blue-500`).
+- **Bug grouping**: canonicalize URL (origin + pathname, no query/hash) before lookup.
 
-```bash
-git init
-git add .
-git commit -m "feat: initial scaffold"
-git branch -M main
-git remote add origin https://github.com/siiidddexe/LLreporter.git
-git push -u origin main
-```
+## PRs
 
-Then follow `DEPLOYMENT.md` to wire Dokploy.
-
-## Project map
-
-```
-LLreporter/
-├── web/                         Next.js 14 dashboard + REST API
-│   ├── prisma/schema.prisma     Data model (User, Project, Membership, BugSet, Bug, Comment)
-│   ├── prisma/seed.js           Idempotent super-admin seeder
-│   └── src/
-│       ├── app/                 App Router pages + /api routes
-│       ├── components/          Dashboard UI (client components)
-│       └── lib/                 db, auth (JWT, 100yr tokens), api helpers, uploads
-├── extension/                   Chrome MV3 extension
-│   └── src/
-│       ├── manifest.json        Registers ⌘K/Ctrl+K command
-│       ├── background.js        Service worker — commands, API, screenshots
-│       ├── content.js           Injects the modal into every page
-│       ├── modal.css            Dark / blue-accent UI matching the dashboard
-│       └── popup.html / .js     Toolbar popup with login + sign-out
-├── connector/                   VS Code + Claude drop-in
-│   ├── bin/llreporter.mjs       CLI (next, list, show, patch, comment)
-│   ├── DOCUMENTATION.md         Developer docs + Claude system prompt
-│   └── .llreporterrc.example
-├── docker-compose.yml           Postgres + web, Dokploy-friendly
-├── Dockerfile                   Multi-stage build for the web service
-├── dokploy.yml                  Dokploy v0.26.7 metadata
-└── DEPLOYMENT.md                Step-by-step deploy on webaudit.logiclaunch.in
-```
+1. Fork, branch off `main`.
+2. Keep diffs focused.
+3. Run `npm run build` inside `web/` before opening a PR.
