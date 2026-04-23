@@ -1,30 +1,27 @@
 "use client";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Menu, X } from "lucide-react";
 
 export function MobileNav({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <>
-      {/* Hamburger — only on mobile */}
+    <div className="md:hidden">
+      {/* Hamburger */}
       <button
-        className="fixed top-4 left-4 z-50 flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-panel/80 backdrop-blur-sm md:hidden"
+        className="fixed top-4 left-4 z-50 flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-panel/90 backdrop-blur-sm"
         onClick={() => setOpen((v) => !v)}
         aria-label="Toggle menu"
       >
-        <span className="flex flex-col gap-1.5">
-          <span className={`block h-0.5 w-5 bg-white/70 transition-all duration-200 ${open ? "translate-y-2 rotate-45" : ""}`} />
-          <span className={`block h-0.5 w-5 bg-white/70 transition-all duration-200 ${open ? "opacity-0" : ""}`} />
-          <span className={`block h-0.5 w-5 bg-white/70 transition-all duration-200 ${open ? "-translate-y-2 -rotate-45" : ""}`} />
-        </span>
+        {open ? <X size={18} /> : <Menu size={18} />}
       </button>
 
       {/* Overlay */}
       <AnimatePresence>
         {open && (
           <motion.div
-            className="fixed inset-0 z-40 bg-black/50 md:hidden"
+            className="fixed inset-0 z-40 bg-black/60"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -33,15 +30,16 @@ export function MobileNav({ children }: { children: React.ReactNode }) {
         )}
       </AnimatePresence>
 
-      {/* Sidebar drawer */}
-      <div
-        className={`fixed inset-y-0 left-0 z-40 transition-transform duration-300 md:relative md:translate-x-0 ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+      {/* Drawer */}
+      <motion.div
+        className="fixed inset-y-0 left-0 z-40"
+        initial={false}
+        animate={{ x: open ? 0 : "-100%" }}
+        transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
         onClick={() => setOpen(false)}
       >
         {children}
-      </div>
-    </>
+      </motion.div>
+    </div>
   );
 }

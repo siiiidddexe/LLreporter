@@ -18,10 +18,36 @@ ls -la /data || true
 
 cd /app/web
 
-echo "[entrypoint] running: prisma db push …"
-npx prisma db push --accept-data-loss --skip-generate
+# ---------------------------------------------------------------
+# Schema-aware DB sync: only run `prisma db push` when the schema
+# has actually changed (or when the DB file does not yet exist).
+# This preserves user data across redeploys.
+#
+# We hash prisma/schema.prisma and store the hash next to the DB.
+# `--accept-data-loss` is intentionally NOT used: if a destructive
+# migration is ever required we want the deploy to fail loudly so
+# we can review it instead of silently wiping bugs / projects.
+# ---------------------------------------------------------------
+SCHEMA_HASH=$(sha256sum prisma/schema.prisma | awk '{print $1}')
+STORED_HASH_FILE="/data/.schema-hash"
+PREV_HASH=""
+if [ -f "$STORED_HASH_FILE" ]; then
+  PREV_HASH=$(cat "$STORED_HASH_FILE" 2>/dev/null || echo "")
+fi
 
-echo "[entrypoint] running: seed …"
+if [ ! -f /data/llreporter.db ]; then
+  echo "[entrypoint] no DB found — initial prisma db push"
+  npx prisma db push --skip-generate
+  echo "$SCHEMA_HASH" > "$STORED_HASH_FILE"
+elif [ "$PREV_HASH" != "$SCHEMA_HASH" ]; then
+  echo "[entrypoint] schema changed (hash $PREV_HASH -> $SCHEMA_HASH) — running prisma db push"
+  npx prisma db push --skip-generate
+  echo "$SCHEMA_HASH" > "$STORED_HASH_FILE"
+else
+  echo "[entrypoint] schema unchanged — preserving DB as-is (no push)"
+fi
+
+echo "[entrypoint] running: seed (idempotent upserts) …"
 node prisma/seed.js
 
 echo "[entrypoint] starting Next.js …"
