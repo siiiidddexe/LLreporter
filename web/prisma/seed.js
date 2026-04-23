@@ -6,20 +6,19 @@ const bcrypt = require("bcryptjs");
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = process.env.SEED_ADMIN_EMAIL || "admin@logiclaunch.in";
+  const email = (process.env.SEED_ADMIN_EMAIL || "admin@logiclaunch.in").toLowerCase().trim();
   const password = process.env.SEED_ADMIN_PASSWORD || "changeme";
   const name = process.env.SEED_ADMIN_NAME || "Super Admin";
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    console.log(`[seed] super-admin already exists: ${email}`);
-    return;
-  }
   const passwordHash = await bcrypt.hash(password, 10);
-  await prisma.user.create({
-    data: { email, name, passwordHash, role: "SUPER_ADMIN" },
+
+  // Upsert: always sync env → DB so changing SEED_ADMIN_PASSWORD + restart actually works.
+  const user = await prisma.user.upsert({
+    where: { email },
+    update: { name, passwordHash, role: "SUPER_ADMIN" },
+    create: { email, name, passwordHash, role: "SUPER_ADMIN" },
   });
-  console.log(`[seed] created super-admin ${email} / ${password}`);
+  console.log(`[seed] super-admin synced: ${user.email}`);
 }
 
 main()
