@@ -14,11 +14,4 @@ cmds = [
 ]
 
 [start]
-# After the volume mounts at /data:
-#  1. ensure /data exists and is writable
-#  2. only run `prisma db push` when schema.prisma has changed (or DB is new)
-#     — this preserves user data across redeploys.
-#     `--accept-data-loss` is intentionally omitted; destructive migrations
-#     should fail loudly so they can be reviewed.
-#  3. seed (idempotent upserts) and start Next.js
-cmd = "mkdir -p /data && chmod 0777 /data && cd web && SCHEMA_HASH=$(sha256sum prisma/schema.prisma | awk '{print $1}') && PREV_HASH=$(cat /data/.schema-hash 2>/dev/null || echo '') && if [ ! -f /data/llreporter.db ] || [ \"$PREV_HASH\" != \"$SCHEMA_HASH\" ]; then echo \"[start] schema changed or new DB — running prisma db push\"; npx prisma db push --skip-generate && echo \"$SCHEMA_HASH\" > /data/.schema-hash; else echo \"[start] schema unchanged — preserving DB\"; fi && node prisma/seed.js && cd .. && npm run start"
+cmd = "mkdir -p /data /data/uploads && chmod 0777 /data /data/uploads && ([ -L /app/web/public/uploads ] || (find /app/web/public/uploads -type f -exec mv {} /data/uploads/ \\; 2>/dev/null; rm -rf /app/web/public/uploads; ln -sfn /data/uploads /app/web/public/uploads)) && cd web && SCHEMA_HASH=$(sha256sum prisma/schema.prisma | awk '{print $1}') && PREV_HASH=$(cat /data/.schema-hash 2>/dev/null || echo '') && if [ ! -f /data/llreporter.db ] || [ \"$PREV_HASH\" != \"$SCHEMA_HASH\" ]; then echo \"[start] schema changed or new DB — running prisma db push\"; npx prisma db push --skip-generate && echo \"$SCHEMA_HASH\" > /data/.schema-hash; else echo \"[start] schema unchanged — preserving DB\"; fi && node prisma/seed.js && cd .. && npm run start"

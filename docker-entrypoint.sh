@@ -10,8 +10,20 @@ echo "[entrypoint] PORT         = ${PORT:-3000}"
 echo "[entrypoint] ============================================"
 
 # Ensure the data dir exists and is writable regardless of volume ownership.
-mkdir -p /data /app/web/public/uploads
-chmod 0777 /data /app/web/public/uploads
+mkdir -p /data /data/uploads
+chmod 0777 /data /data/uploads
+
+# Wire up the uploads directory.
+# Uploads must survive re-deploys, so they live on the /data volume.
+# Remove any empty baked-in public/uploads dir and symlink it to /data/uploads
+# so that both the runtime API route and any local-dev static serving work.
+if [ -d /app/web/public/uploads ] && [ ! -L /app/web/public/uploads ]; then
+  # Migrate any files that were baked into the image (shouldn't exist, but be safe).
+  find /app/web/public/uploads -type f -exec mv {} /data/uploads/ \; 2>/dev/null || true
+  rm -rf /app/web/public/uploads
+fi
+ln -sfn /data/uploads /app/web/public/uploads
+echo "[entrypoint] uploads → /data/uploads (symlink in place)"
 
 echo "[entrypoint] /data contents:"
 ls -la /data || true
