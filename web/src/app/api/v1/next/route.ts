@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { getProjectByApiKey } from "@/lib/auth";
 import { fail, ok } from "@/lib/api";
+import { absScreenshot } from "@/lib/url";
 
 /** Returns the next bug to work on for this project. Priority: UNRESOLVED → OPEN → IN_PROGRESS. */
 export async function GET(req: NextRequest) {
@@ -21,7 +22,12 @@ export async function GET(req: NextRequest) {
         },
       },
     });
-    if (bug) return ok({ bug, project: { id: project.id, name: project.name } });
+    if (bug) {
+      return ok({
+        bug: { ...bug, screenshotUrl: absScreenshot(req, bug.screenshot) },
+        project: { id: project.id, name: project.name },
+      });
+    }
   }
   return ok({ bug: null, project: { id: project.id, name: project.name } });
 }

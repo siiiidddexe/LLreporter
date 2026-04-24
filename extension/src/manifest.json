@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "LLReporter — LogicLaunch Bug Capture",
-  "version": "0.1.0",
-  "description": "Press ⌘K / Ctrl+K on any page to report a bug. Pastes screenshots, auto-captures URL, sends to webaudit.logiclaunch.in.",
+  "version": "0.2.0",
+  "description": "Press ⌘K / Ctrl+K on any page to report a bug. Auto-captures the screenshot, just type a description, sends to webaudit.logiclaunch.in.",
   "permissions": ["activeTab", "storage", "scripting", "tabs"],
   "host_permissions": ["https://webaudit.logiclaunch.in/*", "http://localhost:3000/*", "<all_urls>"],
   "action": { "default_popup": "popup.html", "default_title": "LLReporter" },
@@ -11,7 +11,6 @@
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
-      "css": ["modal.css"],
       "run_at": "document_idle",
       "all_frames": false
     }
@@ -26,7 +25,5 @@
     }
   },
   "icons": { "16": "icon16.png", "48": "icon48.png", "128": "icon128.png" },
-  "web_accessible_resources": [
-    { "resources": ["modal.css"], "matches": ["<all_urls>"] }
-  ]
+  "web_accessible_resources": []
 }

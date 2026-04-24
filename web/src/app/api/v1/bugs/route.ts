@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { getProjectByApiKey } from "@/lib/auth";
 import { fail, ok } from "@/lib/api";
+import { absScreenshot } from "@/lib/url";
 
 export async function GET(req: NextRequest) {
   const project = await getProjectByApiKey(req);
@@ -17,5 +18,10 @@ export async function GET(req: NextRequest) {
       reporter: { select: { name: true, email: true } },
     },
   });
-  return ok({ bugs });
+  return ok({
+    bugs: bugs.map((b: { screenshot: string | null }) => ({
+      ...b,
+      screenshotUrl: absScreenshot(req, b.screenshot),
+    })),
+  });
 }

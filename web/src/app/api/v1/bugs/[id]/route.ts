@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getProjectByApiKey } from "@/lib/auth";
 import { fail, ok } from "@/lib/api";
+import { absScreenshot } from "@/lib/url";
 
 type Ctx = { params: { id: string } };
 
@@ -23,16 +24,8 @@ export async function GET(req: NextRequest, { params }: Ctx) {
   });
   if (!bug) return fail("not found", 404);
 
-  // Absolute screenshot URL for Claude convenience
-  const origin = req.headers.get("x-forwarded-host")
-    ? `${req.headers.get("x-forwarded-proto") || "https"}://${req.headers.get("x-forwarded-host")}`
-    : new URL(req.url).origin;
-
   return ok({
-    bug: {
-      ...bug,
-      screenshotUrl: bug.screenshot ? `${origin}${bug.screenshot}` : null,
-    },
+    bug: { ...bug, screenshotUrl: absScreenshot(req, bug.screenshot) },
   });
 }
 

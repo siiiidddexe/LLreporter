@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { ProjectAdminPanel } from "@/components/ProjectAdminPanel";
 import { KanbanBoard } from "@/components/KanbanBoard";
 import { ProjectTabs } from "@/components/ProjectTabs";
+import { ReportBugButton } from "@/components/ReportBugButton";
 
 export default async function ProjectPage({ params, searchParams }: {
   params: { id: string };
@@ -38,12 +39,12 @@ export default async function ProjectPage({ params, searchParams }: {
   if (!project) notFound();
 
   if (user.role !== "SUPER_ADMIN") {
-    const m = project.memberships.find((x) => x.user.id === user.id);
+    const m = project.memberships.find((x: { user: { id: string } }) => x.user.id === user.id);
     if (!m) notFound();
   }
 
   const isAdmin = user.role === "SUPER_ADMIN";
-  const members = project.memberships.map((m) => m.user);
+  const members = project.memberships.map((m: { user: { id: string; name: string; email: string; role: string } }) => m.user);
 
   return (
     <div className="space-y-6">
@@ -56,6 +57,10 @@ export default async function ProjectPage({ params, searchParams }: {
         <div className="flex items-center gap-2 text-sm text-white/40">
           <span className="badge">{project.bugs.length} bugs</span>
           <span className="badge">{project.bugSets.length} sets</span>
+          <ReportBugButton
+            projects={[{ id: project.id, name: project.name }]}
+            defaultProjectId={project.id}
+          />
         </div>
       </header>
 
@@ -80,7 +85,13 @@ export default async function ProjectPage({ params, searchParams }: {
             <span className="text-xs text-white/40">{project.bugSets.length} sets</span>
           </div>
           <ul className="divide-y divide-line">
-            {project.bugSets.map((bs) => (
+            {project.bugSets.map((bs: {
+              id: string;
+              title: string;
+              url: string;
+              _count: { bugs: number };
+              bugs: { status: string; createdAt: Date }[];
+            }) => (
               <li key={bs.id} className="flex flex-wrap items-center justify-between gap-3 p-4 hover:bg-white/[.02]">
                 <div className="min-w-0 flex-1">
                   <Link
