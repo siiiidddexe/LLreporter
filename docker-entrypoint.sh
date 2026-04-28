@@ -22,6 +22,7 @@ if [ -d /app/web/public/uploads ] && [ ! -L /app/web/public/uploads ]; then
   find /app/web/public/uploads -type f -exec mv {} /data/uploads/ \; 2>/dev/null || true
   rm -rf /app/web/public/uploads
 fi
+mkdir -p /app/web/public
 ln -sfn /data/uploads /app/web/public/uploads
 echo "[entrypoint] uploads → /data/uploads (symlink in place)"
 
