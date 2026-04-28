@@ -23,15 +23,13 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - data:/data                      # SQLite DB file
-      - uploads:/app/web/public/uploads # screenshot uploads
+      - data:/data  # SQLite DB + uploads both live under /data (persistent across redeploys)
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 30s
+      start_period: 60s
 
 volumes:
   data:
-  uploads:

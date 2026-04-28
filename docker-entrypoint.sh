@@ -1,6 +1,9 @@
 #!/bin/sh
 # LLReporter entrypoint — runs AFTER docker volume mounts.
-# SQLite lives at /data/llreporter.db (top-level, outside the app tree).
+# SQLite lives at /data/llreporter.db.
+# Uploads live at /data/uploads.
+# In production, the /uploads/[...slug] route handler serves files directly
+# from /data/uploads — no public/uploads symlink is needed.
 set -e
 
 echo "[entrypoint] ============================================"
@@ -9,22 +12,10 @@ echo "[entrypoint] NODE_ENV     = $NODE_ENV"
 echo "[entrypoint] PORT         = ${PORT:-3000}"
 echo "[entrypoint] ============================================"
 
-# Ensure the data dir exists and is writable regardless of volume ownership.
+# Ensure the data dir and uploads subdir exist and are writable
+# regardless of volume ownership.
 mkdir -p /data /data/uploads
 chmod 0777 /data /data/uploads
-
-# Wire up the uploads directory.
-# Uploads must survive re-deploys, so they live on the /data volume.
-# Remove any empty baked-in public/uploads dir and symlink it to /data/uploads
-# so that both the runtime API route and any local-dev static serving work.
-if [ -d /app/web/public/uploads ] && [ ! -L /app/web/public/uploads ]; then
-  # Migrate any files that were baked into the image (shouldn't exist, but be safe).
-  find /app/web/public/uploads -type f -exec mv {} /data/uploads/ \; 2>/dev/null || true
-  rm -rf /app/web/public/uploads
-fi
-mkdir -p /app/web/public
-ln -sfn /data/uploads /app/web/public/uploads
-echo "[entrypoint] uploads → /data/uploads (symlink in place)"
 
 echo "[entrypoint] /data contents:"
 ls -la /data || true

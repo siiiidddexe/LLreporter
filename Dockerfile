@@ -29,10 +29,10 @@ COPY --from=builder /app /app
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Pre-create dirs in the image layer (volumes will mount on top but dirs
-# will still be available if no volume is attached, e.g. local dev).
-RUN mkdir -p /data /app/web/public/uploads \
- && chmod 0777 /data /app/web/public/uploads
+# Pre-create /data dir in the image layer so the entrypoint has a guaranteed
+# writable target even if no volume is attached (e.g. local dev without compose).
+# The actual /data/uploads subdir is created by the entrypoint at runtime.
+RUN mkdir -p /data && chmod 0777 /data
 
 # ── env defaults (all overridable at runtime) ─────────────────────────────
 ENV NODE_ENV=production
